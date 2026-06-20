@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encuesta — De todos y de nadie</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f4f0;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 { font-size: 18px; font-weight: 500; }
+    header span { font-size: 13px; color: #888; }
+
+    .container { max-width: 680px; margin: 0 auto; padding: 2rem 1rem; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 0.75rem;
+    }
+
+    h2 { font-size: 20px; font-weight: 500; margin-bottom: 0.4rem; }
+    .sub { font-size: 14px; color: #666; margin-bottom: 1.25rem; line-height: 1.5; }
+
+    label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; margin-top: 12px; }
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus, input[type="email"]:focus { border-color: #534AB7; }
+
+    .error { font-size: 12px; color: #c0392b; margin-top: 6px; display: none; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: #534AB7;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #3C3489; }
+    .btn-primary:disabled { background: #b0acd9; cursor: not-allowed; }
+
+    .btn-outline {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: #444;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      transition: background 0.15s;
+    }
+    .btn-outline:hover { background: #f5f4f0; }
+
+    .progress-bar { height: 3px; background: #eee; border-radius: 2px; margin-bottom: 1.5rem; }
+    .progress-fill { height: 3px; background: #534AB7; border-radius: 2px; transition: width 0.4s; }
+
+    .q-label { font-size: 12px; color: #999; margin-bottom: 0.4rem; }
+    .q-text { font-size: 16px; font-weight: 500; margin-bottom: 1rem; line-height: 1.4; }
+
+    .options { display: flex; flex-direction: column; gap: 8px; }
+    .opt-btn {
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #1a1a1a;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .opt-btn:hover { background: #f5f4f0; }
+    .opt-btn.sel { background: #EEEDFE; border-color: #534AB7; color: #3C3489; font-weight: 500; }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.25rem;
+      gap: 10px;
+    }
+    .nav .btn-outline { width: auto; margin: 0; padding: 10px 20px; }
+    .nav .btn-primary { width: auto; margin: 0; padding: 10px 20px; }
+    .step-info { font-size: 13px; color: #999; }
+
+    .success-circle {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #E1F5EE;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 24px;
+    }
+    .text-center { text-align: center; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+    .metric {
+      background: #f5f4f0;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+    }
+    .metric-val { font-size: 24px; font-weight: 500; }
+    .metric-lbl { font-size: 12px; color: #888; margin-top: 2px; }
+
+    .tab-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+    .tab {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      background: transparent;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .tab:hover { background: #f5f4f0; }
+    .tab.active { background: #EEEDFE; border-color: #534AB7; color: #3C3489; font-weight: 500; }
+
+    .legend-row {
+      display: flex; flex-wrap: wrap; gap: 12px;
+      font-size: 12px; color: #666;
+      margin-bottom: 1rem;
+    }
+    .legend-row span { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    .chart-wrap { position: relative; width: 100%; height: 240px; }
+
+    .divider { border: none; border-top: 1px solid #eee; margin: 1.25rem 0; }
+
+    .hidden { display: none !important; }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .btn-refresh {
+      padding: 7px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 13px;
+      cursor: pointer;
+      color: #444;
+    }
+    .btn-refresh:hover { background: #f5f4f0; }
+
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid #eee;
+      border-top-color: #534AB7;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 2rem auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .metrics { grid-template-columns: repeat(2, 1fr); }
+      .card { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>De todos y de nadie</h1>
+  <span id="header-status"></span>
+</header>
+
+<div class="container">
+
+  <!-- VISTA: Registro -->
+  <div id="view-register">
+    <div class="card">
+      <div class="section-label">Paso 1 de 2</div>
+      <h2>Registro</h2>
+      <p class="sub">Tus datos son privados y no se mostrarán públicamente. Solo se usan para evitar respuestas duplicadas.</p>
+      <label for="reg-name">Nombre</label>
+      <input type="text" id="reg-name" placeholder="Tu nombre" />
+      <label for="reg-email">Correo electrónico</label>
+      <input type="email" id="reg-email" placeholder="tucorreo@ejemplo.com" />
+      <div class="error" id="reg-error"></div>
+      <button class="btn-primary" id="btn-register" disabled>Continuar al cuestionario →</button>
+      <hr class="divider" />
+      <button class="btn-outline" onclick="mostrarResultados()">Ver resultados sin responder →</button>
+    </div>
+  </div>
+
+  <!-- VISTA: Cuestionario -->
+  <div id="view-quiz" class="hidden">
+    <div class="card">
+      <div class="section-label">Paso 2 de 2 — Cuestionario</div>
+      <div class="progress-bar"><div class="progress-fill" id="q-progress"></div></div>
+      <div class="q-label" id="q-label"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+      <div class="nav">
+        <button class="btn-outline" id="btn-back" onclick="qBack()" disabled>← Atrás</button>
+        <span class="step-info" id="q-step"></span>
+        <button class="btn-primary" id="btn-next" onclick="qNext()" disabled>Siguiente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA: Éxito -->
+  <div id="view-done" class="hidden">
+    <div class="card text-center">
+      <div class="success-circle">✓</div>
+      <h2>¡Gracias por responder!</h2>
+      <p class="sub" style="margin-top:0.5rem">Tus respuestas quedaron registradas. Los resultados se actualizan en tiempo real.</p>
+      <button class="btn-primary" onclick="mostrarResultados()">Ver resultados acumulados →</button>
+    </div>
+  </div>
+
+  <!-- VISTA: Resultados -->
+  <div id="view-results" class="hidden">
+    <div class="card">
+      <div class="results-header">
+        <div>
+          <div class="section-label">Resultados en vivo</div>
+          <h2 style="margin-bottom:0">Respuestas acumuladas</h2>
+        </div>
+        <button class="btn-refresh" onclick="cargarResultados()">↺ Actualizar</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="m-total">—</div><div class="metric-lbl">Respuestas</div></div>
+        <div class="metric"><div class="metric-val" id="m-today">—</div><div class="metric-lbl">Hoy</div></div>
+        <div class="metric"><div class="metric-val" id="m-opts">—</div><div class="metric-lbl">Preguntas</div></div>
+      </div>
+      <div class="tab-row" id="tab-row"></div>
+      <div class="legend-row" id="chart-legend"></div>
+      <div class="chart-wrap">
+        <div class="spinner" id="chart-spinner"></div>
+        <canvas id="results-chart" class="hidden" role="img" aria-label="Gráfico de barras con resultados acumulados"></canvas>
+      </div>
+    </div>
+    <button class="btn-outline" onclick="mostrarRegistro()" style="max-width:680px;margin:0 auto;display:block">← Volver al inicio</button>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, Timestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyADBunHoGaq9U9eFTRxmdb0HHWHdc6nMAs",
+    authDomain: "de-todos-y-de-nadie.firebaseapp.com",
+    projectId: "de-todos-y-de-nadie",
+    storageBucket: "de-todos-y-de-nadie.firebasestorage.app",
+    messagingSenderId: "230603566606",
+    appId: "1:230603566606:web:1fe12d7afe4b4c41e4565f",
+    measurementId: "G-9SLQ2MPPDG"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const PREGUNTAS = [
+    { texto: "¿Con qué frecuencia usas herramientas digitales en tu trabajo?", opciones: ["Todos los días","Varias veces por semana","Ocasionalmente","Casi nunca"] },
+    { texto: "¿Cómo calificarías tu nivel de alfabetización digital?", opciones: ["Avanzado","Intermedio","Básico","Principiante"] },
+    { texto: "¿Qué tan cómodo/a te sientes aprendiendo nuevas tecnologías?", opciones: ["Muy cómodo/a","Bastante cómodo/a","Un poco incómodo/a","Muy incómodo/a"] },
+    { texto: "¿Tu organización apoya la adopción de nuevas herramientas digitales?", opciones: ["Totalmente","En parte","Poco","No apoya"] }
+  ];
+
+  const COLORES = ["#534AB7","#1D9E75","#D85A30","#888780"];
+
+  let usuarioActual = null;
+  let qActual = 0;
+  let qRespuestas = new Array(PREGUNTAS.length).fill(null);
+  let chartInstance = null;
+  let tabActiva = 0;
+
+  function mostrarVista(id) {
+    ["view-register","view-quiz","view-done","view-results"].forEach(v => {
+      document.getElementById(v).classList.add("hidden");
+    });
+    document.getElementById(id).classList.remove("hidden");
+  }
+
+  window.mostrarRegistro = () => mostrarVista("view-register");
+  window.mostrarResultados = () => { mostrarVista("view-results"); cargarResultados(); };
+
+  // Registro
+  const regName = document.getElementById("reg-name");
+  const regEmail = document.getElementById("reg-email");
+  const btnReg = document.getElementById("btn-register");
+
+  function checkReg() {
+    const ok = regName.value.trim() && regEmail.value.trim().includes("@");
+    btnReg.disabled = !ok;
+  }
+  regName.addEventListener("input", checkReg);
+  regEmail.addEventListener("input", checkReg);
+
+  btnReg.addEventListener("click", async () => {
+    const nombre = regName.value.trim();
+    const email = regEmail.value.trim().toLowerCase();
+    const errEl = document.getElementById("reg-error");
+    errEl.style.display = "none";
+    btnReg.disabled = true;
+    btnReg.textContent = "Verificando...";
+
+    try {
+      const hash = btoa(email).replace(/=/g, "");
+      const q = query(collection(db, "usuarios"), where("hash", "==", hash));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        errEl.textContent = "Este correo ya respondió el cuestionario.";
+        errEl.style.display = "block";
+        btnReg.disabled = false;
+        btnReg.textContent = "Continuar al cuestionario →";
+        return;
+      }
+      usuarioActual = { hash, nombre };
+      iniciarCuestionario();
+    } catch(e) {
+      errEl.textContent = "Error de conexión. Intenta de nuevo.";
+      errEl.style.display = "block";
+      btnReg.disabled = false;
+      btnReg.textContent = "Continuar al cuestionario →";
+    }
+  });
+
+  function iniciarCuestionario() {
+    qActual = 0;
+    qRespuestas = new Array(PREGUNTAS.length).fill(null);
+    mostrarVista("view-quiz");
+    renderPregunta();
+  }
+
+  function renderPregunta() {
+    const q = PREGUNTAS[qActual];
+    const total = PREGUNTAS.length;
+    document.getElementById("q-progress").style.width = `${(qActual / total) * 100}%`;
+    document.getElementById("q-label").textContent = `Pregunta ${qActual + 1} de ${total}`;
+    document.getElementById("q-text").textContent = q.texto;
+    document.getElementById("q-step").textContent = `${qActual + 1} / ${total}`;
+    document.getElementById("btn-back").disabled = qActual === 0;
+    const btnNext = document.getElementById("btn-next");
+    btnNext.textContent = qActual === total - 1 ? "Enviar respuestas ✓" : "Siguiente →";
+    btnNext.disabled = qRespuestas[qActual] === null;
+
+    const optEl = document.getElementById("q-options");
+    optEl.innerHTML = "";
+    q.opciones.forEach((opt, i) => {
+      const btn = document.createElement("button");
+      btn.className = "opt-btn" + (qRespuestas[qActual] === i ? " sel" : "");
+      btn.textContent = opt;
+      btn.onclick = () => seleccionarOpcion(i);
+      optEl.appendChild(btn);
+    });
+  }
+
+  function seleccionarOpcion(i) {
+    qRespuestas[qActual] = i;
+    document.querySelectorAll(".opt-btn").forEach((b, idx) => {
+      b.className = "opt-btn" + (idx === i ? " sel" : "");
+    });
+    document.getElementById("btn-next").disabled = false;
+  }
+
+  window.qBack = () => { if (qActual > 0) { qActual--; renderPregunta(); } };
+
+  window.qNext = async () => {
+    if (qActual < PREGUNTAS.length - 1) { qActual++; renderPregunta(); return; }
+    await guardarRespuesta();
+  };
+
+  async function guardarRespuesta() {
+    const btnNext = document.getElementById("btn-next");
+    btnNext.disabled = true;
+    btnNext.textContent = "Guardando...";
+    try {
+      await addDoc(collection(db, "usuarios"), { hash: usuarioActual.hash, ts: Timestamp.now() });
+      await addDoc(collection(db, "respuestas"), {
+        respuestas: qRespuestas,
+        ts: Timestamp.now()
+      });
+      mostrarVista("view-done");
+    } catch(e) {
+      btnNext.disabled = false;
+      btnNext.textContent = "Enviar respuestas ✓";
+      alert("Error al guardar. Verifica tu conexión e intenta de nuevo.");
+    }
+  }
+
+  window.cargarResultados = async () => {
+    document.getElementById("chart-spinner").style.display = "block";
+    document.getElementById("results-chart").classList.add("hidden");
+
+    try {
+      const snapResp = await getDocs(collection(db, "respuestas"));
+      const todas = [];
+      snapResp.forEach(doc => todas.push(doc.data()));
+
+      const hoy = new Date().toDateString();
+      const hoyCount = todas.filter(r => r.ts?.toDate().toDateString() === hoy).length;
+
+      document.getElementById("m-total").textContent = todas.length;
+      document.getElementById("m-today").textContent = hoyCount;
+      document.getElementById("m-opts").textContent = PREGUNTAS.length;
+
+      const tabRow = document.getElementById("tab-row");
+      tabRow.innerHTML = PREGUNTAS.map((q, i) =>
+        `<button class="tab${i === tabActiva ? " active" : ""}" onclick="cambiarTab(${i})">${i + 1}. ${q.texto.split(" ").slice(0, 4).join(" ")}…</button>`
+      ).join("");
+
+      window._todasRespuestas = todas;
+      renderGrafico(todas, tabActiva);
+    } catch(e) {
+      document.getElementById("chart-spinner").style.display = "none";
+      alert("Error al cargar resultados.");
+    }
+  };
+
+  window.cambiarTab = (i) => {
+    tabActiva = i;
+    document.querySelectorAll(".tab").forEach((t, idx) => t.className = "tab" + (idx === i ? " active" : ""));
+    renderGrafico(window._todasRespuestas || [], i);
+  };
+
+  function renderGrafico(todas, qIdx) {
+    const q = PREGUNTAS[qIdx];
+    const conteos = q.opciones.map((_, i) => todas.filter(r => r.respuestas?.[qIdx] === i).length);
+    const total = conteos.reduce((a, b) => a + b, 0) || 1;
+
+    document.getElementById("chart-legend").innerHTML = q.opciones.map((opt, i) =>
+      `<span><span class="dot" style="background:${COLORES[i]}"></span>${opt} (${conteos[i]})</span>`
+    ).join("");
+
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+    document.getElementById("chart-spinner").style.display = "none";
+    const canvas = document.getElementById("results-chart");
+    canvas.classList.remove("hidden");
+
+    chartInstance = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: q.opciones.map(o => o.length > 22 ? o.slice(0, 20) + "…" : o),
+        datasets: [{
+          data: conteos,
+          backgroundColor: COLORES,
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const pct = Math.round((ctx.raw / total) * 100);
+                return `${ctx.raw} respuestas (${pct}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: "#888", font: { size: 12 } } },
+          y: { beginAtZero: true, ticks: { stepSize: 1, color: "#888", font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.05)" } }
+        }
+      }
+    });
+  }
+
+</script>
+</body>
+</html>
