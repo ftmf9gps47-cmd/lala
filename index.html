@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>De todos y de nadie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple:        #7C6FCD;
+      --purple-bright: #B8AEFF;
+      --glass-border:  rgba(255,255,255,0.09);
+      --glass-active:  rgba(124,111,205,0.55);
+      --text-primary:  #F0EEFF;
+      --text-secondary:rgba(240,238,255,0.5);
+      --text-muted:    rgba(240,238,255,0.28);
+      --c0: #B8AEFF;
+      --c1: #7C6FCD;
+      --c2: #4A3F9F;
+      --c3: #9F6FD6;
+    }
+    html, body { height:100%; overflow:hidden; }
+    body { font-family:'Inter',-apple-system,sans-serif; background:#070510; color:var(--text-primary); }
+    .aura-top { position:fixed;top:-30vh;left:50%;transform:translateX(-50%);width:100vw;height:90vh;background:radial-gradient(ellipse at 50% 10%,rgba(110,70,220,.45) 0%,rgba(60,20,130,.18) 40%,transparent 68%);pointer-events:none;z-index:0;filter:blur(20px); }
+    .aura-side { position:fixed;bottom:-5vh;right:-15vw;width:55vw;height:55vw;max-width:500px;max-height:500px;background:radial-gradient(ellipse,rgba(90,40,200,.18) 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:0;filter:blur(50px); }
+    header { position:relative;z-index:10;height:56px;display:flex;align-items:center;padding:0 2rem;border-bottom:1px solid rgba(255,255,255,.06); }
+    .logo { font-size:15px;font-weight:500;color:var(--text-primary); }
+    .logo em { font-style:normal;color:var(--purple-bright); }
+    .page { position:fixed;inset:56px 0 0 0;z-index:1;overflow:hidden;display:flex;flex-direction:column; }
+    .page.hidden { display:none !important; }
+
+    /* REGISTRO */
+    #view-register { overflow-y:auto;padding:4rem 1.5rem 3rem;align-items:flex-start; }
+    #view-register .inner { max-width:500px;margin:0 auto; }
+    .hero-eyebrow { display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--purple-bright);margin-bottom:1.4rem;opacity:0;animation:fadeUp .7s .1s cubic-bezier(.22,1,.36,1) forwards; }
+    .hero-eyebrow::before { content:'';display:block;width:18px;height:1px;background:var(--purple-bright);opacity:.7; }
+    .hero-title { font-size:clamp(30px,6vw,46px);font-weight:600;letter-spacing:-.03em;line-height:1.1;margin-bottom:1rem;opacity:0;animation:fadeUp .8s .2s cubic-bezier(.22,1,.36,1) forwards; }
+    .hero-title em { font-style:italic;font-weight:300;color:var(--purple-bright); }
+    .hero-sub { font-size:15px;color:var(--text-secondary);line-height:1.65;margin-bottom:2.5rem;opacity:0;animation:fadeUp .8s .3s cubic-bezier(.22,1,.36,1) forwards; }
+    .bare-fields { opacity:0;animation:fadeUp .8s .4s cubic-bezier(.22,1,.36,1) forwards; }
+    .field-row { margin-bottom:1rem; }
+    .field-row label { display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px; }
+    .field-row input { width:100%;padding:13px 0;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,.12);font-size:16px;color:var(--text-primary);font-family:inherit;outline:none;transition:border-color .2s; }
+    .field-row input::placeholder { color:var(--text-muted); }
+    .field-row input:focus { border-bottom-color:var(--purple-bright); }
+    .error-msg { font-size:12px;color:#ff7eb3;margin-top:8px;display:none; }
+    .reg-actions { display:flex;align-items:center;gap:1.5rem;margin-top:2rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s .5s cubic-bezier(.22,1,.36,1) forwards; }
+    .btn-cta { padding:13px 28px;background:linear-gradient(135deg,#6B5FBE,#9B8FE8);color:#fff;border:none;border-radius:999px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;box-shadow:0 4px 24px rgba(107,95,190,.4);transition:opacity .15s,transform .15s; }
+    .btn-cta:hover:not(:disabled) { opacity:.88;transform:translateY(-1px); }
+    .btn-cta:disabled { opacity:.3;cursor:not-allowed; }
+    .link-ghost { font-size:13px;color:var(--text-muted);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;text-underline-offset:3px;transition:color .15s; }
+    .link-ghost:hover { color:var(--text-secondary); }
+
+    /* CUESTIONARIO */
+    #view-quiz { align-items:center;justify-content:center;text-align:center;padding:1rem 1.5rem; }
+    .q-prog-wrap { position:fixed;top:56px;left:0;right:0;z-index:20;height:2px;background:rgba(255,255,255,.06); }
+    .q-prog-fill { height:2px;background:linear-gradient(90deg,var(--purple),var(--purple-bright));transition:width .6s cubic-bezier(.22,1,.36,1);box-shadow:0 0 10px var(--purple); }
+    .q-counter { font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2rem; }
+    .q-big-text { font-size:clamp(24px,4.5vw,40px);font-weight:600;letter-spacing:-.025em;line-height:1.2;color:var(--text-primary);margin-bottom:2.5rem;max-width:640px; }
+    @keyframes wordSmoke { 0%{opacity:0;filter:blur(18px);transform:translateY(10px) scale(.96)} 60%{filter:blur(2px)} 100%{opacity:1;filter:blur(0);transform:translateY(0) scale(1)} }
+    .word { display:inline-block;opacity:0;margin-right:.22em; }
+    .word.visible { animation:wordSmoke .7s cubic-bezier(.22,1,.36,1) forwards; }
+    .q-opts { display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;max-width:440px; }
+    @keyframes optIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    .opt-btn { width:100%;padding:13px 22px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:12px;color:var(--text-secondary);font-size:14px;font-family:inherit;cursor:pointer;text-align:center;opacity:0;transition:background .15s,border-color .15s,color .15s,transform .12s; }
+    .opt-btn.anim { animation:optIn .45s cubic-bezier(.22,1,.36,1) forwards; }
+    .opt-btn:hover { background:rgba(124,111,205,.12);border-color:rgba(124,111,205,.35);color:var(--text-primary);transform:scale(1.01); }
+    .opt-btn.sel { background:rgba(124,111,205,.2);border-color:var(--purple);color:var(--purple-bright);font-weight:500; }
+    .q-nav { display:flex;justify-content:center;align-items:center;gap:1.25rem;margin-top:2rem; }
+    .btn-ghost { padding:9px 18px;background:transparent;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;min-width:80px; }
+    .btn-ghost:hover:not(:disabled) { color:var(--text-primary);border-color:var(--glass-active); }
+    .btn-ghost:disabled { opacity:.2;cursor:not-allowed; }
+    .step-pill { font-size:11px;color:var(--text-muted);background:rgba(255,255,255,.05);border:1px solid var(--glass-border);border-radius:999px;padding:5px 12px;letter-spacing:.05em;white-space:nowrap; }
+    .btn-main { padding:9px 24px;background:linear-gradient(135deg,#6B5FBE,#9B8FE8);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;box-shadow:0 3px 16px rgba(107,95,190,.35);transition:opacity .15s,transform .15s;min-width:90px; }
+    .btn-main:hover:not(:disabled) { opacity:.88;transform:translateY(-1px); }
+    .btn-main:disabled { opacity:.3;cursor:not-allowed; }
+
+    /* ÉXITO */
+    #view-done { align-items:center;justify-content:center;text-align:center;padding:2rem; }
+    .done-circle { width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,205,.35),transparent);border:1px solid rgba(124,111,205,.5);display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:26px;box-shadow:0 0 28px rgba(124,111,205,.35);opacity:0;animation:fadeUp .7s .1s cubic-bezier(.22,1,.36,1) forwards; }
+    #view-done h2 { font-size:34px;font-weight:600;letter-spacing:-.03em;margin-bottom:.75rem;opacity:0;animation:fadeUp .7s .2s cubic-bezier(.22,1,.36,1) forwards; }
+    #view-done p { font-size:15px;color:var(--text-secondary);line-height:1.6;max-width:340px;margin:0 auto 2rem;opacity:0;animation:fadeUp .7s .3s cubic-bezier(.22,1,.36,1) forwards; }
+    #view-done .btn-cta { opacity:0;animation:fadeUp .7s .4s cubic-bezier(.22,1,.36,1) forwards; }
+
+    /* RESULTADOS */
+    #view-results { flex-direction:row; }
+    .r-sidebar { width:64px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;border-right:1px solid rgba(255,255,255,.06);background:rgba(7,5,16,.6);backdrop-filter:blur(10px); }
+    .q-dot { width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative; }
+    .q-dot:hover { border-color:rgba(184,174,255,.4);color:var(--text-secondary); }
+    .q-dot.on { border-color:var(--purple-bright);color:var(--purple-bright);background:rgba(184,174,255,.12);box-shadow:0 0 14px rgba(184,174,255,.3),inset 0 0 10px rgba(184,174,255,.08); }
+    .q-dot.on::after { content:'';position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:4px;height:4px;border-radius:50%;background:var(--purple-bright);box-shadow:0 0 6px var(--purple-bright); }
+
+    .r-main { flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:2rem 2rem 1.5rem;overflow:hidden;position:relative; }
+
+    .r-stats { display:flex;gap:20px;margin-bottom:2rem;opacity:0;animation:fadeUp .6s .1s cubic-bezier(.22,1,.36,1) forwards; }
+    .r-stat { text-align:center; }
+    .r-stat-v { font-size:18px;font-weight:600;color:var(--purple-bright);line-height:1; }
+    .r-stat-l { font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-top:3px; }
+    .r-divider { width:1px;background:rgba(255,255,255,.07); }
+
+    .r-question { font-size:clamp(14px,1.7vw,18px);font-weight:500;letter-spacing:-.01em;color:var(--text-primary);text-align:center;max-width:500px;line-height:1.35;margin-bottom:2rem;min-height:2.5em; }
+    .r-question .word { margin-right:.2em; }
+
+    /* Wrapper: espacio lateral para etiquetas */
+    .chart-scene-wrapper {
+      position:relative;
+      width:min(72vw,520px);
+      height:min(38vh,300px);
+      flex-shrink:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    /* El canvas ocupa el centro, más pequeño que el wrapper */
+    #results-chart {
+      position:relative;
+      z-index:2;
+      width:min(34vh,260px) !important;
+      height:min(34vh,260px) !important;
+    }
+
+    /* Anillos decorativos */
+    .ring-deco {
+      position:absolute;
+      border-radius:50%;
+      border:1px solid rgba(184,174,255,.1);
+      pointer-events:none;
+      z-index:1;
+    }
+
+    /* Centro del donut */
+    .chart-center { position:absolute;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%); }
+    .center-pct { font-size:clamp(22px,4.5vh,36px);font-weight:600;letter-spacing:-.03em;text-shadow:0 0 24px rgba(184,174,255,.6);transition:all .3s; }
+    .center-lbl { font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-top:4px;text-align:center;max-width:100px; }
+
+    /* Anotaciones SVG y labels */
+    #ann-svg { position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:4; }
+    .ann-label { position:absolute;pointer-events:none;z-index:5;opacity:0;transition:opacity .4s; }
+    .ann-label.show { opacity:1; }
+    .ann-name { font-size:10px;font-weight:500;letter-spacing:.02em;white-space:nowrap; }
+    .ann-val  { font-size:9px;opacity:.55;margin-top:1px;white-space:nowrap; }
+
+    .btn-back-r { margin-top:1.8rem;padding:8px 18px;background:transparent;color:var(--text-muted);border:1px solid var(--glass-border);border-radius:10px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s; }
+    .btn-back-r:hover { color:var(--text-primary);border-color:var(--glass-active); }
+
+    @keyframes cOut { to{opacity:0;transform:scale(.88);filter:blur(8px);} }
+    @keyframes cIn  { from{opacity:0;transform:scale(.88);filter:blur(8px);}to{opacity:1;transform:scale(1);filter:blur(0);} }
+    .exiting  { animation:cOut .32s ease forwards; }
+    .entering { animation:cIn .5s cubic-bezier(.22,1,.36,1) forwards; }
+
+    .spinner-wrap { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10; }
+    .spinner { width:22px;height:22px;border:2px solid rgba(124,111,205,.2);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+<div class="aura-top" aria-hidden="true"></div>
+<div class="aura-side" aria-hidden="true"></div>
+<header><div class="logo">de <em>todos</em> y de nadie</div></header>
+
+<!-- REGISTRO -->
+<div id="view-register" class="page">
+  <div class="inner">
+    <p class="hero-eyebrow">Encuesta colectiva anónima</p>
+    <h1 class="hero-title">Lo que <em>piensas</em><br>importa.</h1>
+    <p class="hero-sub">Responde de forma anónima. Tus datos personales son privados y jamás se mostrarán públicamente — solo existen para evitar respuestas duplicadas.</p>
+    <div class="bare-fields">
+      <div class="field-row"><label for="reg-name">Tu nombre</label><input type="text" id="reg-name" placeholder="Cómo te llamas" autocomplete="name"/></div>
+      <div class="field-row"><label for="reg-email">Correo electrónico</label><input type="email" id="reg-email" placeholder="tucorreo@ejemplo.com" autocomplete="email"/></div>
+      <div class="error-msg" id="reg-error"></div>
+    </div>
+    <div class="reg-actions">
+      <button class="btn-cta" id="btn-register" disabled>Participar</button>
+      <button class="link-ghost" onclick="mostrarResultados()">Ver resultados</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUESTIONARIO -->
+<div id="view-quiz" class="page hidden">
+  <div class="q-prog-wrap"><div class="q-prog-fill" id="q-progress"></div></div>
+  <p class="q-counter" id="q-counter"></p>
+  <div class="q-big-text" id="q-big-text"></div>
+  <div class="q-opts" id="q-options"></div>
+  <div class="q-nav">
+    <button class="btn-ghost" id="btn-back" onclick="qBack()" disabled>Atrás</button>
+    <span class="step-pill" id="q-step"></span>
+    <button class="btn-main" id="btn-next" onclick="qNext()" disabled>Siguiente</button>
+  </div>
+</div>
+
+<!-- ÉXITO -->
+<div id="view-done" class="page hidden">
+  <div class="done-circle">✓</div>
+  <h2>Gracias.</h2>
+  <p>Tus respuestas quedaron registradas y ya forman parte del resultado colectivo.</p>
+  <button class="btn-cta" onclick="mostrarResultados()">Ver resultados</button>
+</div>
+
+<!-- RESULTADOS -->
+<div id="view-results" class="page hidden">
+  <div class="r-sidebar" id="r-sidebar"></div>
+  <div class="r-main">
+    <div class="r-stats">
+      <div class="r-stat"><div class="r-stat-v" id="m-total">—</div><div class="r-stat-l">Respuestas</div></div>
+      <div class="r-divider"></div>
+      <div class="r-stat"><div class="r-stat-v" id="m-today">—</div><div class="r-stat-l">Hoy</div></div>
+      <div class="r-divider"></div>
+      <div class="r-stat"><div class="r-stat-v" id="m-opts">—</div><div class="r-stat-l">Preguntas</div></div>
+    </div>
+    <div class="r-question" id="r-question"></div>
+    <div class="chart-scene-wrapper" id="chart-wrapper">
+      <!-- anillos decorativos alineados con el canvas -->
+      <div class="ring-deco" id="ring1"></div>
+      <div class="ring-deco" id="ring2"></div>
+      <div class="spinner-wrap" id="spinner-wrap"><div class="spinner"></div></div>
+      <canvas id="results-chart" class="hidden"></canvas>
+      <div class="chart-center">
+        <div class="center-pct" id="center-pct"></div>
+        <div class="center-lbl" id="center-lbl"></div>
+      </div>
+      <svg id="ann-svg"></svg>
+      <!-- labels HTML posicionados absolutamente -->
+      <div id="ann-labels" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>
+    </div>
+    <button class="btn-back-r" onclick="mostrarRegistro()">← Volver al inicio</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, where, Timestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:"AIzaSyADBunHoGaq9U9eFTRxmdb0HHWHdc6nMAs",
+    authDomain:"de-todos-y-de-nadie.firebaseapp.com",
+    projectId:"de-todos-y-de-nadie",
+    storageBucket:"de-todos-y-de-nadie.firebasestorage.app",
+    messagingSenderId:"230603566606",
+    appId:"1:230603566606:web:1fe12d7afe4b4c41e4565f",
+    measurementId:"G-9SLQ2MPPDG"
+  };
+  const app=initializeApp(firebaseConfig), db=getFirestore(app);
+
+  const PREGUNTAS=[
+    {texto:"¿Con qué frecuencia usas herramientas digitales en tu trabajo?",      opciones:["Todos los días","Varias veces por semana","Ocasionalmente","Casi nunca"]},
+    {texto:"¿Cómo calificarías tu nivel de alfabetización digital?",               opciones:["Avanzado","Intermedio","Básico","Principiante"]},
+    {texto:"¿Qué tan cómodo/a te sientes aprendiendo nuevas tecnologías?",         opciones:["Muy cómodo/a","Bastante cómodo/a","Un poco incómodo/a","Muy incómodo/a"]},
+    {texto:"¿Tu organización apoya la adopción de nuevas herramientas digitales?",  opciones:["Totalmente","En parte","Poco","No apoya"]}
+  ];
+  const COLS=["#B8AEFF","#7C6FCD","#4A3F9F","#9F6FD6"];
+  const COLS_H=["#CFC8FF","#9B8FE8","#6056C0","#B88EE8"];
+
+  let usuarioActual=null,qActual=0,qRespuestas=new Array(PREGUNTAS.length).fill(null);
+  let chart=null,tabActiva=0,todas=[],busy=false;
+
+  function ir(id){document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");}
+  window.mostrarRegistro=()=>ir("view-register");
+  window.mostrarResultados=()=>{ir("view-results");cargarResultados();};
+
+  /* Registro */
+  const rN=document.getElementById("reg-name"),rE=document.getElementById("reg-email"),bR=document.getElementById("btn-register");
+  [rN,rE].forEach(el=>el.addEventListener("input",()=>{bR.disabled=!(rN.value.trim()&&rE.value.includes("@"));}));
+  bR.addEventListener("click",async()=>{
+    const email=rE.value.trim().toLowerCase(),err=document.getElementById("reg-error");
+    err.style.display="none";bR.disabled=true;bR.textContent="Verificando...";
+    try{
+      const hash=btoa(unescape(encodeURIComponent(email))).replace(/=/g,"");
+      const snap=await getDocs(query(collection(db,"usuarios"),where("hash","==",hash)));
+      if(!snap.empty){err.textContent="Este correo ya respondió el cuestionario.";err.style.display="block";bR.disabled=false;bR.textContent="Participar";return;}
+      usuarioActual={hash,nombre:rN.value.trim()};iniciarCuestionario();
+    }catch(e){err.textContent="Error de conexión.";err.style.display="block";bR.disabled=false;bR.textContent="Participar";}
+  });
+
+  /* Cuestionario */
+  function iniciarCuestionario(){qActual=0;qRespuestas=new Array(PREGUNTAS.length).fill(null);ir("view-quiz");renderQ();}
+  function humo(texto,elId){
+    const el=document.getElementById(elId);el.innerHTML="";
+    texto.split(" ").forEach((w,i)=>{const s=document.createElement("span");s.className="word";s.textContent=w;setTimeout(()=>s.classList.add("visible"),i*75);el.appendChild(s);});
+    return texto.split(" ").length*75+100;
+  }
+  function renderQ(){
+    const q=PREGUNTAS[qActual],T=PREGUNTAS.length;
+    document.getElementById("q-progress").style.width=`${(qActual/T)*100}%`;
+    document.getElementById("q-counter").textContent=`${qActual+1} de ${T}`;
+    document.getElementById("q-step").textContent=`${qActual+1} / ${T}`;
+    document.getElementById("btn-back").disabled=qActual===0;
+    const bn=document.getElementById("btn-next");bn.textContent=qActual===T-1?"Enviar":"Siguiente";bn.disabled=qRespuestas[qActual]===null;
+    const d=humo(q.texto,"q-big-text");
+    const oe=document.getElementById("q-options");oe.innerHTML="";
+    q.opciones.forEach((o,i)=>{const b=document.createElement("button");b.className="opt-btn"+(qRespuestas[qActual]===i?" sel":"");b.textContent=o;b.onclick=()=>elegir(i);oe.appendChild(b);setTimeout(()=>b.classList.add("anim"),d+i*85);});
+  }
+  function elegir(i){qRespuestas[qActual]=i;document.querySelectorAll(".opt-btn").forEach((b,j)=>b.className="opt-btn anim"+(j===i?" sel":""));document.getElementById("btn-next").disabled=false;}
+  window.qBack=()=>{if(qActual>0){qActual--;renderQ();}};
+  window.qNext=async()=>{
+    if(qActual<PREGUNTAS.length-1){qActual++;renderQ();return;}
+    const bn=document.getElementById("btn-next");bn.disabled=true;bn.textContent="Guardando...";
+    try{await addDoc(collection(db,"usuarios"),{hash:usuarioActual.hash,ts:Timestamp.now()});await addDoc(collection(db,"respuestas"),{respuestas:qRespuestas,ts:Timestamp.now()});ir("view-done");}
+    catch(e){bn.disabled=false;bn.textContent="Enviar";alert("Error al guardar.");}
+  };
+
+  /* Resultados */
+  async function cargarResultados(){
+    document.getElementById("spinner-wrap").style.display="flex";
+    document.getElementById("results-chart").classList.add("hidden");
+    clearAnnotations();
+    try{
+      const snap=await getDocs(collection(db,"respuestas"));
+      todas=[];snap.forEach(d=>todas.push(d.data()));
+      const hoy=new Date().toDateString();
+      document.getElementById("m-total").textContent=todas.length;
+      document.getElementById("m-today").textContent=todas.filter(r=>r.ts?.toDate().toDateString()===hoy).length;
+      document.getElementById("m-opts").textContent=PREGUNTAS.length;
+      buildSidebar();renderGrafico(todas,tabActiva,false);
+    }catch(e){document.getElementById("spinner-wrap").style.display="none";alert("Error al cargar resultados.");}
+  }
+  function buildSidebar(){
+    const sb=document.getElementById("r-sidebar");sb.innerHTML="";
+    PREGUNTAS.forEach((_,i)=>{const b=document.createElement("button");b.className="q-dot"+(i===tabActiva?" on":"");b.textContent=i+1;b.title=`Pregunta ${i+1}`;b.onclick=()=>cambiarTab(i);sb.appendChild(b);});
+  }
+  window.cambiarTab=(i)=>{
+    if(i===tabActiva||busy)return;busy=true;
+    const cv=document.getElementById("results-chart");
+    clearAnnotations();cv.classList.add("exiting");
+    setTimeout(()=>{cv.classList.remove("exiting");tabActiva=i;buildSidebar();renderGrafico(todas,i,true);busy=false;},320);
+  };
+
+  function clearAnnotations(){
+    document.getElementById("ann-svg").innerHTML="";
+    document.getElementById("ann-labels").innerHTML="";
+  }
+
+  function renderGrafico(resp,qIdx,entrada){
+    const q=PREGUNTAS[qIdx];
+    const counts=q.opciones.map((_,i)=>resp.filter(r=>r.respuestas?.[qIdx]===i).length);
+    const total=counts.reduce((a,b)=>a+b,0)||1;
+    const maxI=counts.indexOf(Math.max(...counts));
+
+    humo(q.texto,"r-question");
+
+    const topPct=Math.round((counts[maxI]/total)*100);
+    document.getElementById("center-pct").textContent=topPct+"%";
+    document.getElementById("center-lbl").textContent=q.opciones[maxI];
+
+    if(chart){chart.destroy();chart=null;}
+    document.getElementById("spinner-wrap").style.display="none";
+    const cv=document.getElementById("results-chart");
+    cv.classList.remove("hidden");
+    if(entrada){cv.classList.add("entering");setTimeout(()=>cv.classList.remove("entering"),520);}
+
+    // Grosor variable: ganador más grueso, resto delgados
+    // Simulamos con dos datasets superpuestos usando clip + borderRadius
+    // Mejor: usamos un plugin custom que dibuja los arcos manualmente con grosor distinto
+    const THIN = 0.10;   // fracción del radio para segmentos normales
+    const THICK= 0.18;   // fracción del radio para el ganador
+
+    chart=new Chart(cv,{
+      type:"doughnut",
+      data:{
+        labels:q.opciones,
+        datasets:[{
+          data:counts,
+          backgroundColor:COLS,
+          hoverBackgroundColor:COLS_H,
+          borderColor:"#070510",
+          borderWidth:0,  // sin gaps entre segmentos
+          spacing:0,      // sin spacing — círculo continuo
+          // El offset solo para el ganador, para que sobresalga
+          offset:counts.map((_,i)=>i===maxI?10:0),
+        }]
+      },
+      plugins:[{
+        id:"variableArc",
+        // Antes de renderizar, manipulamos el cutout por segmento dibujando encima
+        afterDraw(ch){
+          const {ctx,chartArea:{top,left,width,height}}=ch;
+          const cx=left+width/2, cy=top+height/2;
+          const meta=ch.getDatasetMeta(0);
+          // Radio exterior base
+          const outerR=meta.data[0]?meta.data[0].outerRadius:0;
+          // Para cada arco, redibujamos con grosor personalizado
+          meta.data.forEach((arc,i)=>{
+            const isWinner=i===maxI;
+            const innerR=isWinner? outerR*0.52 : outerR*0.62;
+            const oR=isWinner? outerR+6 : outerR;
+            const startA=arc.startAngle, endA=arc.endAngle;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx,cy,oR,startA,endA);
+            ctx.arc(cx,cy,innerR,endA,startA,true);
+            ctx.closePath();
+            ctx.fillStyle=arc.options.backgroundColor;
+            // Glow en el ganador
+            if(isWinner){
+              ctx.shadowColor=COLS[i];
+              ctx.shadowBlur=18;
+            }
+            ctx.fill();
+            ctx.restore();
+          });
+        }
+      }],
+      options:{
+        responsive:false,
+        maintainAspectRatio:false,
+        cutout:"62%",  // el plugin sobreescribe esto visualmente
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:"rgba(10,6,24,.96)",
+            borderColor:"rgba(184,174,255,.3)",borderWidth:1,
+            titleColor:"#F0EEFF",bodyColor:"rgba(240,238,255,.65)",
+            callbacks:{label:ctx=>`  ${ctx.raw} respuestas (${Math.round((ctx.raw/total)*100)}%)`}
+          }
+        },
+        onHover:(_,els)=>{
+          if(els.length){
+            const i=els[0].index;
+            document.getElementById("center-pct").textContent=Math.round((counts[i]/total)*100)+"%";
+            document.getElementById("center-lbl").textContent=q.opciones[i];
+          }else{
+            document.getElementById("center-pct").textContent=topPct+"%";
+            document.getElementById("center-lbl").textContent=q.opciones[maxI];
+          }
+        },
+        animation:{
+          animateRotate:true,duration:entrada?750:550,easing:"easeInOutQuart",
+          onComplete:()=>{
+            posicionarAnillos();
+            setTimeout(()=>renderAnnotations(counts,total,q.opciones,maxI),80);
+          }
+        }
+      }
+    });
+  }
+
+  function posicionarAnillos(){
+    const cv=document.getElementById("results-chart");
+    const wr=document.getElementById("chart-wrapper");
+    const cr=cv.getBoundingClientRect(), wrr=wr.getBoundingClientRect();
+    const cx=cr.left-wrr.left+cr.width/2, cy=cr.top-wrr.top+cr.height/2;
+    const r=cr.width/2;
+    ["ring1","ring2"].forEach((id,i)=>{
+      const pad=(i+1)*14;
+      const el=document.getElementById(id);
+      el.style.cssText=`position:absolute;border-radius:50%;border:1px solid rgba(184,174,255,${i===0?".12":".05"});
+        left:${cx-r-pad}px;top:${cy-r-pad}px;
+        width:${(r+pad)*2}px;height:${(r+pad)*2}px;
+        box-shadow:${i===0?"0 0 22px rgba(124,111,205,.2),inset 0 0 16px rgba(124,111,205,.07)":""};
+        pointer-events:none;z-index:1;`;
+    });
+  }
+
+  function renderAnnotations(counts,total,opciones,maxI){
+    clearAnnotations();
+    const cv=document.getElementById("results-chart");
+    const wr=document.getElementById("chart-wrapper");
+    const cr=cv.getBoundingClientRect(), wrr=wr.getBoundingClientRect();
+    const cx=cr.left-wrr.left+cr.width/2;
+    const cy=cr.top-wrr.top+cr.height/2;
+    const R=cr.width/2;
+
+    const svg=document.getElementById("ann-svg");
+    const labelsEl=document.getElementById("ann-labels");
+
+    // Calcular ángulo medio de cada segmento
+    const tot2=counts.reduce((a,b)=>a+b,0)||1;
+    let startA=-Math.PI/2;
+    const midAngles=counts.map(c=>{
+      const mid=startA+Math.PI*(c/tot2);
+      startA+=2*Math.PI*(c/tot2);
+      return mid;
+    });
+
+    counts.forEach((cnt,i)=>{
+      if(cnt===0)return;
+      const pct=Math.round((cnt/tot2)*100);
+      const a=midAngles[i];
+      const isWin=i===maxI;
+      // Radio del borde exterior de este segmento (el ganador sobresale)
+      const outerR=isWin? R+6 : R;
+      // Punto de inicio de la línea (en el borde del arco)
+      const startR=outerR+8;
+      const px=cx+startR*Math.cos(a);
+      const py=cy+startR*Math.sin(a);
+      // Dirección: si el segmento está a la derecha → línea va a la derecha
+      const goRight=Math.cos(a)>=0;
+      // Longitud de línea diagonal
+      const diagLen=28;
+      const ex=px+diagLen*Math.cos(a);
+      const ey=py+diagLen*Math.sin(a);
+      // Línea horizontal final
+      const hLen=24;
+      const hx=goRight? ex+hLen : ex-hLen;
+
+      // SVG lines
+      const line1=document.createElementNS("http://www.w3.org/2000/svg","line");
+      line1.setAttribute("x1",px);line1.setAttribute("y1",py);
+      line1.setAttribute("x2",ex);line1.setAttribute("y2",ey);
+      line1.setAttribute("stroke",COLS[i]);line1.setAttribute("stroke-width","1");line1.setAttribute("opacity","0.5");
+      svg.appendChild(line1);
+
+      const line2=document.createElementNS("http://www.w3.org/2000/svg","line");
+      line2.setAttribute("x1",ex);line2.setAttribute("y1",ey);
+      line2.setAttribute("x2",hx);line2.setAttribute("y2",ey);
+      line2.setAttribute("stroke",COLS[i]);line2.setAttribute("stroke-width","1");line2.setAttribute("opacity","0.5");
+      svg.appendChild(line2);
+
+      // Dot en el inicio de la línea
+      const dot=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      dot.setAttribute("cx",px);dot.setAttribute("cy",py);dot.setAttribute("r","2.5");
+      dot.setAttribute("fill",COLS[i]);
+      dot.setAttribute("filter",`drop-shadow(0 0 4px ${COLS[i]})`);
+      svg.appendChild(dot);
+
+      // Label HTML
+      const div=document.createElement("div");
+      div.className="ann-label";
+      const lx=goRight? hx+4 : hx-4;
+      const textAlign=goRight?"left":"right";
+      div.style.cssText=`top:${ey-18}px;${goRight?"left":"right"}:${goRight? lx : wrr.width-lx}px;text-align:${textAlign};`;
+      div.innerHTML=`<div class="ann-name" style="color:${COLS[i]}">${opciones[i]}</div><div class="ann-val" style="color:${COLS[i]}">${cnt} · ${pct}%</div>`;
+      labelsEl.appendChild(div);
+      setTimeout(()=>div.classList.add("show"),100+i*110);
+    });
+  }
+</script>
+</body>
+</html>
